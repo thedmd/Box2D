@@ -1,5 +1,6 @@
 /*
 * Copyright (c) 2009 Erin Catto http://www.box2d.org
+* Copyright (c) 2014 Google, Inc.
 *
 * This software is provided 'as-is', without any express or implied
 * warranty.  In no event will the authors be held liable for any damages
@@ -590,8 +591,10 @@ void b2DynamicTree::ValidateStructure(int32 index) const
 
 	const b2TreeNode* node = m_nodes + index;
 
+#if B2_ASSERT_ENABLED || DEBUG
 	int32 child1 = node->child1;
 	int32 child2 = node->child2;
+#endif  // B2_ASSERT_ENABLED || DEBUG
 
 	if (node->IsLeaf())
 	{
@@ -607,8 +610,8 @@ void b2DynamicTree::ValidateStructure(int32 index) const
 	b2Assert(m_nodes[child1].parent == index);
 	b2Assert(m_nodes[child2].parent == index);
 
-	ValidateStructure(child1);
-	ValidateStructure(child2);
+	B2_DEBUG_STATEMENT(ValidateStructure(child1));
+	B2_DEBUG_STATEMENT(ValidateStructure(child2));
 }
 
 void b2DynamicTree::ValidateMetrics(int32 index) const
@@ -634,10 +637,12 @@ void b2DynamicTree::ValidateMetrics(int32 index) const
 	b2Assert(0 <= child1 && child1 < m_nodeCapacity);
 	b2Assert(0 <= child2 && child2 < m_nodeCapacity);
 
+#if B2_ASSERT_ENABLED
 	int32 height1 = m_nodes[child1].height;
 	int32 height2 = m_nodes[child2].height;
 	int32 height;
 	height = 1 + b2Max(height1, height2);
+#endif // B2_ASSERT_ENABLED
 	b2Assert(node->height == height);
 
 	b2AABB aabb;
@@ -652,9 +657,8 @@ void b2DynamicTree::ValidateMetrics(int32 index) const
 
 void b2DynamicTree::Validate() const
 {
-#if defined(b2DEBUG)
-	ValidateStructure(m_root);
-	ValidateMetrics(m_root);
+	B2_DEBUG_STATEMENT(ValidateStructure(m_root));
+	B2_DEBUG_STATEMENT(ValidateMetrics(m_root));
 
 	int32 freeCount = 0;
 	int32 freeIndex = m_freeList;
@@ -668,7 +672,6 @@ void b2DynamicTree::Validate() const
 	b2Assert(GetHeight() == ComputeHeight());
 
 	b2Assert(m_nodeCount + freeCount == m_nodeCapacity);
-#endif
 }
 
 int32 b2DynamicTree::GetMaxBalance() const
@@ -766,7 +769,7 @@ void b2DynamicTree::RebuildBottomUp()
 	m_root = nodes[0];
 	b2Free(nodes);
 
-	Validate();
+	B2_DEBUG_STATEMENT(Validate());
 }
 
 void b2DynamicTree::ShiftOrigin(const b2Vec2& newOrigin)

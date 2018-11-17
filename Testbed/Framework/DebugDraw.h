@@ -25,6 +25,7 @@ struct b2AABB;
 struct GLRenderPoints;
 struct GLRenderLines;
 struct GLRenderTriangles;
+struct GLRenderParticles;
 
 //
 struct Camera
@@ -64,7 +65,9 @@ public:
 
 	void DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color) override;
 
-	void DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color) override;
+    void DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color) override;
+
+    void DrawParticles(const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count) override;
 
 	void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color) override;
 
@@ -84,9 +87,9 @@ private:
 	GLRenderPoints* m_points;
 	GLRenderLines* m_lines;
 	GLRenderTriangles* m_triangles;
+    GLRenderParticles* m_particles;
 };
 
-extern DebugDraw g_debugDraw;
 extern Camera g_camera;
 
 #endif

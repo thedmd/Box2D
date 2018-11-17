@@ -17,7 +17,31 @@
 */
 
 #include "../Framework/Test.h"
+#include "../Framework/Main.h"
+#include "../Framework/DebugDraw.h"
 
+#include "AntiPointy.h"
+#include "CornerCase.h"
+#include "DamBreak.h"
+#include "DrawingParticles.h"
+#include "ElasticParticles.h"
+#include "Faucet.h"
+#include "Fracker.h"
+#include "Impulse.h"
+#include "LiquidTimer.h"
+#include "Maxwell.h"
+#include "MultipleParticleSystems.h"
+#include "ParticleCollisionFilter.h"
+#include "Particles.h"
+#include "ParticlesSurfaceTension.h"
+#include "Pointy.h"
+#include "Ramp.h"
+#include "RigidParticles.h"
+#include "Sandbox.h"
+#include "Soup.h"
+#include "SoupStirrer.h"
+#include "Sparky.h"
+#include "WaveMachine.h"
 #include "AddPair.h"
 #include "ApplyForce.h"
 #include "BasicSliderCrank.h"
@@ -127,5 +151,29 @@ TestEntry g_testEntries[] =
 	{"Sensor Test", SensorTest::Create},
 	{"Varying Friction", VaryingFriction::Create},
 	{"Add Pair Stress Test", AddPair::Create},
+
+    { "Sandbox", Sandbox::Create },
+    { "Sparky", Sparky::Create },
+    { "DamBreak", DamBreak::Create },
+    { "Liquid Timer", LiquidTimer::Create },
+    { "Wave Machine", WaveMachine::Create },
+    { "Particles", Particles::Create },
+    { "Faucet", Faucet::Create },
+    { "Particle Drawing", DrawingParticles::Create },
+    { "Soup", Soup::Create },
+    { "Surface Tension", ParticlesSurfaceTension::Create },
+    { "Elastic Particles", ElasticParticles::Create },
+    { "Rigid Particles", RigidParticles::Create },
+    { "Multiple Systems", MultipleParticleSystems::Create },
+    { "Impulse", Impulse::Create },
+    { "Soup Stirrer", SoupStirrer::Create },
+    { "Fracker", Fracker::Create },
+    { "Maxwell", Maxwell::Create },
+    { "Ramp", Ramp::Create },
+    { "Pointy", Pointy::Create },
+    { "AntiPointy", AntiPointy::Create },
+    { "Corner Case", CornerCase::Create },
+    { "Particle Collisions", ParticleCollisionFilter::Create },
+
 	{NULL, NULL}
 };

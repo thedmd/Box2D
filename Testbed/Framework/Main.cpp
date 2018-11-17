@@ -40,6 +40,8 @@
 #include <crtdbg.h>
 #endif
 
+#include "Main.h"
+
 //
 struct UIState
 {
@@ -60,6 +62,44 @@ namespace
 	Settings settings;
 	bool rightMouseDown;
 	b2Vec2 lastp;
+
+    // Used to control the behavior of particle tests.
+    ParticleParameter particleParameter;
+}
+
+// Set whether to restart the test on particle parameter changes.
+// This parameter is re-enabled when the test changes.
+void TestMain::SetRestartOnParticleParameterChange(bool enable)
+{
+    particleParameter.SetRestartOnChange(enable);
+}
+
+// Set the currently selected particle parameter value.  This value must
+// match one of the values in TestMain::k_particleTypes or one of the values
+// referenced by particleParameterDef passed to SetParticleParameters().
+uint32 TestMain::SetParticleParameterValue(uint32 value)
+{
+    const int32 index = particleParameter.FindIndexByValue(value);
+    // If the particle type isn't found, so fallback to the first entry in the
+    // parameter.
+    particleParameter.Set(index >= 0 ? index : 0);
+    return particleParameter.GetValue();
+}
+
+// Get the currently selected particle parameter value and enable particle
+// parameter selection arrows on Android.
+uint32 TestMain::GetParticleParameterValue()
+{
+    return particleParameter.GetValue();
+}
+
+// Override the default particle parameters for the test.
+void TestMain::SetParticleParameters(
+    const ParticleParameter::Definition * const particleParameterDef,
+    const uint32 particleParameterDefCount)
+{
+    particleParameter.SetDefinition(particleParameterDef,
+        particleParameterDefCount);
 }
 
 //
@@ -266,7 +306,7 @@ static void sMouseButton(GLFWwindow* window, int32 button, int32 action, int32 m
 				test->MouseDown(pw);
 			}
 		}
-		
+
 		if (action == GLFW_RELEASE)
 		{
 			test->MouseUp(pw);
@@ -275,7 +315,7 @@ static void sMouseButton(GLFWwindow* window, int32 button, int32 action, int32 m
 	else if (button == GLFW_MOUSE_BUTTON_2)
 	{
 		if (action == GLFW_PRESS)
-		{	
+		{
 			lastp = g_camera.ConvertScreenToWorld(ps);
 			rightMouseDown = true;
 		}
@@ -294,7 +334,7 @@ static void sMouseMotion(GLFWwindow*, double xd, double yd)
 
 	b2Vec2 pw = g_camera.ConvertScreenToWorld(ps);
 	test->MouseMove(pw);
-	
+
 	if (rightMouseDown)
 	{
 		b2Vec2 diff = pw - lastp;
@@ -384,7 +424,9 @@ static void sInterface()
 		ImGui::Text("Vel Iters");
 		ImGui::SliderInt("##Vel Iters", &settings.velocityIterations, 0, 50);
 		ImGui::Text("Pos Iters");
-		ImGui::SliderInt("##Pos Iters", &settings.positionIterations, 0, 50);
+        ImGui::SliderInt("##Pos Iters", &settings.positionIterations, 0, 50);
+        ImGui::Text("Particle Iters");
+        ImGui::SliderInt("##Particle Iters", &settings.particleIterations, 0, 50);
 		ImGui::Text("Hertz");
 		ImGui::SliderFloat("##Hertz", &settings.hz, 5.0f, 120.0f, "%.0f hz");
 		ImGui::PopItemWidth();
@@ -393,10 +435,12 @@ static void sInterface()
 		ImGui::Checkbox("Warm Starting", &settings.enableWarmStarting);
 		ImGui::Checkbox("Time of Impact", &settings.enableContinuous);
 		ImGui::Checkbox("Sub-Stepping", &settings.enableSubStepping);
+        ImGui::Checkbox("Strict Particle/Body Contacts", &settings.enableStrictContacts);
 
 		ImGui::Separator();
 
 		ImGui::Checkbox("Shapes", &settings.drawShapes);
+        ImGui::Checkbox("Particles", &settings.drawParticles);
 		ImGui::Checkbox("Joints", &settings.drawJoints);
 		ImGui::Checkbox("AABBs", &settings.drawAABBs);
 		ImGui::Checkbox("Contact Points", &settings.drawContactPoints);
@@ -489,8 +533,6 @@ int main(int, char**)
 	glfwSetCursorPosCallback(mainWindow, sMouseMotion);
 	glfwSetScrollCallback(mainWindow, sScrollCallback);
 
-	g_debugDraw.Create();
-
 	sCreateUI(mainWindow);
 
 	testCount = 0;
@@ -510,9 +552,9 @@ int main(int, char**)
 
 	double time1 = glfwGetTime();
 	double frameTime = 0.0;
-   
+
 	glClearColor(0.3f, 0.3f, 0.3f, 1.f);
-	
+
 	while (!glfwWindowShouldClose(mainWindow))
 	{
 		glfwGetWindowSize(mainWindow, &g_camera.m_width, &g_camera.m_height);
@@ -553,7 +595,6 @@ int main(int, char**)
 		test = NULL;
 	}
 
-	g_debugDraw.Destroy();
 	ImGui_ImplGlfwGL3_Shutdown();
 	glfwTerminate();
 

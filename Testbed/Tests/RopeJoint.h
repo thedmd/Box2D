@@ -120,15 +120,15 @@ public:
 	void Step(Settings* settings)
 	{
 		Test::Step(settings);
-		g_debugDraw.DrawString(5, m_textLine, "Press (j) to toggle the rope joint.");
+		m_debugDraw.DrawString(5, m_textLine, "Press (j) to toggle the rope joint.");
 		m_textLine += DRAW_STRING_NEW_LINE;
 		if (m_rope)
 		{
-			g_debugDraw.DrawString(5, m_textLine, "Rope ON");
+			m_debugDraw.DrawString(5, m_textLine, "Rope ON");
 		}
 		else
 		{
-			g_debugDraw.DrawString(5, m_textLine, "Rope OFF");
+			m_debugDraw.DrawString(5, m_textLine, "Rope OFF");
 		}
 		m_textLine += DRAW_STRING_NEW_LINE;
 	}

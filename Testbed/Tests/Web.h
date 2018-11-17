@@ -179,9 +179,9 @@ public:
 	void Step(Settings* settings)
 	{
 		Test::Step(settings);
-		g_debugDraw.DrawString(5, m_textLine, "This demonstrates a soft distance joint.");
+		m_debugDraw.DrawString(5, m_textLine, "This demonstrates a soft distance joint.");
 		m_textLine += DRAW_STRING_NEW_LINE;
-		g_debugDraw.DrawString(5, m_textLine, "Press: (b) to delete a body, (j) to delete a joint");
+		m_debugDraw.DrawString(5, m_textLine, "Press: (b) to delete a body, (j) to delete a joint");
 		m_textLine += DRAW_STRING_NEW_LINE;
 	}
 

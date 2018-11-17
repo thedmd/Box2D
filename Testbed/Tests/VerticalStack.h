@@ -125,9 +125,9 @@ public:
 	void Step(Settings* settings)
 	{
 		Test::Step(settings);
-		g_debugDraw.DrawString(5, m_textLine, "Press: (,) to launch a bullet.");
+		m_debugDraw.DrawString(5, m_textLine, "Press: (,) to launch a bullet.");
 		m_textLine += DRAW_STRING_NEW_LINE;
-		g_debugDraw.DrawString(5, m_textLine, "Blocksolve = %d", g_blockSolve);
+		m_debugDraw.DrawString(5, m_textLine, "Blocksolve = %d", g_blockSolve);
 		//if (m_stepCount == 300)
 		//{
 		//	if (m_bullet != NULL)

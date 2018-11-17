@@ -33,7 +33,6 @@
 
 #define BUFFER_OFFSET(x)  ((const void*) (x))
 
-DebugDraw g_debugDraw;
 Camera g_camera;
 
 //
@@ -169,7 +168,7 @@ static GLuint sCreateShaderFromString(const char* source, GLenum type)
 	return res;
 }
 
-// 
+//
 static GLuint sCreateShaderProgram(const char* vs, const char* fs)
 {
 	GLuint vsId = sCreateShaderFromString(vs, GL_VERTEX_SHADER);
@@ -188,7 +187,7 @@ static GLuint sCreateShaderProgram(const char* vs, const char* fs)
 	GLint status = GL_FALSE;
 	glGetProgramiv(programId, GL_LINK_STATUS, &status);
 	assert(status != GL_FALSE);
-	
+
 	return programId;
 }
 
@@ -210,7 +209,7 @@ struct GLRenderPoints
         "	gl_Position = projectionMatrix * vec4(v_position, 0.0f, 1.0f);\n"
 		"   gl_PointSize = v_size;\n"
         "}\n";
-        
+
 		const char* fs = \
         "#version 330\n"
         "in vec4 f_color;\n"
@@ -219,91 +218,91 @@ struct GLRenderPoints
         "{\n"
         "	color = f_color;\n"
         "}\n";
-        
+
 		m_programId = sCreateShaderProgram(vs, fs);
 		m_projectionUniform = glGetUniformLocation(m_programId, "projectionMatrix");
 		m_vertexAttribute = 0;
 		m_colorAttribute = 1;
 		m_sizeAttribute = 2;
-        
+
 		// Generate
 		glGenVertexArrays(1, &m_vaoId);
 		glGenBuffers(3, m_vboIds);
-        
+
 		glBindVertexArray(m_vaoId);
 		glEnableVertexAttribArray(m_vertexAttribute);
 		glEnableVertexAttribArray(m_colorAttribute);
 		glEnableVertexAttribArray(m_sizeAttribute);
-        
+
 		// Vertex buffer
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
 		glVertexAttribPointer(m_vertexAttribute, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 		glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices, GL_DYNAMIC_DRAW);
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
 		glVertexAttribPointer(m_colorAttribute, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 		glBufferData(GL_ARRAY_BUFFER, sizeof(m_colors), m_colors, GL_DYNAMIC_DRAW);
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[2]);
 		glVertexAttribPointer(m_sizeAttribute, 1, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 		glBufferData(GL_ARRAY_BUFFER, sizeof(m_sizes), m_sizes, GL_DYNAMIC_DRAW);
 
 		sCheckGLError();
-        
+
 		// Cleanup
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
-        
+
 		m_count = 0;
 	}
-    
+
 	void Destroy()
 	{
 		if (m_vaoId)
 		{
 			glDeleteVertexArrays(1, &m_vaoId);
-			glDeleteBuffers(2, m_vboIds);
+			glDeleteBuffers(3, m_vboIds);
 			m_vaoId = 0;
 		}
-        
+
 		if (m_programId)
 		{
 			glDeleteProgram(m_programId);
 			m_programId = 0;
 		}
 	}
-    
+
 	void Vertex(const b2Vec2& v, const b2Color& c, float32 size)
 	{
 		if (m_count == e_maxVertices)
 			Flush();
-        
+
 		m_vertices[m_count] = v;
 		m_colors[m_count] = c;
 		m_sizes[m_count] = size;
 		++m_count;
 	}
-    
+
     void Flush()
 	{
         if (m_count == 0)
             return;
-        
+
 		glUseProgram(m_programId);
-        
+
 		float32 proj[16] = { 0.0f };
 		g_camera.BuildProjectionMatrix(proj, 0.0f);
-        
+
 		glUniformMatrix4fv(m_projectionUniform, 1, GL_FALSE, proj);
-        
+
 		glBindVertexArray(m_vaoId);
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Vec2), m_vertices);
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Color), m_colors);
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[2]);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(float32), m_sizes);
 
@@ -312,21 +311,21 @@ struct GLRenderPoints
         glDisable(GL_PROGRAM_POINT_SIZE);
 
 		sCheckGLError();
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 		glUseProgram(0);
-        
+
 		m_count = 0;
 	}
-    
+
 	enum { e_maxVertices = 512 };
 	b2Vec2 m_vertices[e_maxVertices];
 	b2Color m_colors[e_maxVertices];
     float32 m_sizes[e_maxVertices];
 
 	int32 m_count;
-    
+
 	GLuint m_vaoId;
 	GLuint m_vboIds[3];
 	GLuint m_programId;
@@ -352,7 +351,7 @@ struct GLRenderLines
         "	f_color = v_color;\n"
         "	gl_Position = projectionMatrix * vec4(v_position, 0.0f, 1.0f);\n"
         "}\n";
-        
+
 		const char* fs = \
         "#version 330\n"
         "in vec4 f_color;\n"
@@ -361,38 +360,38 @@ struct GLRenderLines
         "{\n"
         "	color = f_color;\n"
         "}\n";
-        
+
 		m_programId = sCreateShaderProgram(vs, fs);
 		m_projectionUniform = glGetUniformLocation(m_programId, "projectionMatrix");
 		m_vertexAttribute = 0;
 		m_colorAttribute = 1;
-        
+
 		// Generate
 		glGenVertexArrays(1, &m_vaoId);
 		glGenBuffers(2, m_vboIds);
-        
+
 		glBindVertexArray(m_vaoId);
 		glEnableVertexAttribArray(m_vertexAttribute);
 		glEnableVertexAttribArray(m_colorAttribute);
-        
+
 		// Vertex buffer
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
 		glVertexAttribPointer(m_vertexAttribute, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 		glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices, GL_DYNAMIC_DRAW);
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
 		glVertexAttribPointer(m_colorAttribute, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 		glBufferData(GL_ARRAY_BUFFER, sizeof(m_colors), m_colors, GL_DYNAMIC_DRAW);
-        
+
 		sCheckGLError();
-        
+
 		// Cleanup
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
-        
+
 		m_count = 0;
 	}
-    
+
 	void Destroy()
 	{
 		if (m_vaoId)
@@ -401,61 +400,61 @@ struct GLRenderLines
 			glDeleteBuffers(2, m_vboIds);
 			m_vaoId = 0;
 		}
-        
+
 		if (m_programId)
 		{
 			glDeleteProgram(m_programId);
 			m_programId = 0;
 		}
 	}
-    
+
 	void Vertex(const b2Vec2& v, const b2Color& c)
 	{
 		if (m_count == e_maxVertices)
 			Flush();
-        
+
 		m_vertices[m_count] = v;
 		m_colors[m_count] = c;
 		++m_count;
 	}
-    
+
     void Flush()
 	{
         if (m_count == 0)
             return;
-        
+
 		glUseProgram(m_programId);
-        
+
 		float32 proj[16] = { 0.0f };
 		g_camera.BuildProjectionMatrix(proj, 0.1f);
-        
+
 		glUniformMatrix4fv(m_projectionUniform, 1, GL_FALSE, proj);
-        
+
 		glBindVertexArray(m_vaoId);
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Vec2), m_vertices);
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Color), m_colors);
-        
+
 		glDrawArrays(GL_LINES, 0, m_count);
-        
+
 		sCheckGLError();
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 		glUseProgram(0);
-        
+
 		m_count = 0;
 	}
-    
+
 	enum { e_maxVertices = 2 * 512 };
 	b2Vec2 m_vertices[e_maxVertices];
 	b2Color m_colors[e_maxVertices];
-    
+
 	int32 m_count;
-    
+
 	GLuint m_vaoId;
 	GLuint m_vboIds[2];
 	GLuint m_programId;
@@ -551,36 +550,36 @@ struct GLRenderTriangles
 	{
         if (m_count == 0)
             return;
-        
+
 		glUseProgram(m_programId);
-        
+
 		float32 proj[16] = { 0.0f };
 		g_camera.BuildProjectionMatrix(proj, 0.2f);
-        
+
 		glUniformMatrix4fv(m_projectionUniform, 1, GL_FALSE, proj);
-        
+
 		glBindVertexArray(m_vaoId);
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Vec2), m_vertices);
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Color), m_colors);
-        
+
         glEnable(GL_BLEND);
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDrawArrays(GL_TRIANGLES, 0, m_count);
         glDisable(GL_BLEND);
-        
+
 		sCheckGLError();
-        
+
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 		glUseProgram(0);
-        
+
 		m_count = 0;
 	}
-    
+
 	enum { e_maxVertices = 3 * 512 };
 	b2Vec2 m_vertices[e_maxVertices];
 	b2Color m_colors[e_maxVertices];
@@ -596,11 +595,231 @@ struct GLRenderTriangles
 };
 
 //
+struct GLRenderParticles
+{
+	void Create()
+	{
+		const char* vs = \
+        "#version 400\n"
+        "uniform mat4 projectionMatrix;\n"
+        "uniform float particleScale;\n"
+        "layout(location = 0) in vec2 v_position;\n"
+        "layout(location = 1) in vec4 v_color;\n"
+		"layout(location = 2) in float v_size;\n"
+        "out vec4 f_color;\n"
+        "void main(void)\n"
+        "{\n"
+        "	f_color = v_color;\n"
+        "	gl_Position = projectionMatrix * vec4(v_position, 0.0f, 1.0f);\n"
+		"   gl_PointSize = v_size * particleScale;\n"
+        "}\n";
+
+		const char* fs = R"(
+#version 400
+in vec4 f_color;
+out vec4 color;
+uniform sampler2D tex;
+void main(void)
+{
+    vec4 texColor = texture2D(tex, gl_PointCoord);
+    color = texColor * f_color;
+}
+)";
+
+		m_programId = sCreateShaderProgram(vs, fs);
+        m_projectionUniform = glGetUniformLocation(m_programId, "projectionMatrix");
+        m_particleScaleUniform = glGetUniformLocation(m_programId, "particleScale");
+        m_textureUniform = glGetUniformLocation(m_programId, "tex");
+		m_vertexAttribute = 0;
+		m_colorAttribute = 1;
+		m_sizeAttribute = 2;
+
+		// Generate
+		glGenVertexArrays(1, &m_vaoId);
+		glGenBuffers(3, m_vboIds);
+
+		glBindVertexArray(m_vaoId);
+		glEnableVertexAttribArray(m_vertexAttribute);
+		glEnableVertexAttribArray(m_colorAttribute);
+		glEnableVertexAttribArray(m_sizeAttribute);
+
+		// Vertex buffer
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
+		glVertexAttribPointer(m_vertexAttribute, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+		glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices, GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
+		glVertexAttribPointer(m_colorAttribute, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, BUFFER_OFFSET(0));
+		glBufferData(GL_ARRAY_BUFFER, sizeof(m_colors), m_colors, GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[2]);
+		glVertexAttribPointer(m_sizeAttribute, 1, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+		glBufferData(GL_ARRAY_BUFFER, sizeof(m_sizes), m_sizes, GL_DYNAMIC_DRAW);
+
+		sCheckGLError();
+
+        // generate a "gaussian blob" texture procedurally
+        glGenTextures(1, &m_texture);
+        b2Assert(m_texture);
+        const int TSIZE = 64;
+        unsigned char tex[TSIZE][TSIZE][4];
+        auto smoothstep = [](float x) { return x * x * (3 - 2 * x); };
+        for (int y = 0; y < TSIZE; y++)
+        {
+            for (int x = 0; x < TSIZE; x++)
+            {
+                float fx = (x + 0.5f) / TSIZE * 2 - 1;
+                float fy = (y + 0.5f) / TSIZE * 2 - 1;
+                float dist = sqrtf(fx * fx + fy * fy);
+                unsigned char intensity = (unsigned char)(dist <= 1 ? powf(smoothstep(1 - dist), 0.5f) * 255 : 0);
+                tex[y][x][0] = tex[y][x][1] = tex[y][x][2] = 128;
+                tex[y][x][3] = intensity;
+            }
+        }
+        //glEnable(GL_TEXTURE_RECTANGLE);
+        glBindTexture(GL_TEXTURE_2D, m_texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TSIZE, TSIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex);
+        //glDisable(GL_TEXTURE_RECTANGLE);
+
+        sCheckGLError();
+
+		// Cleanup
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+
+		m_count = 0;
+	}
+
+	void Destroy()
+	{
+		if (m_vaoId)
+		{
+			glDeleteVertexArrays(1, &m_vaoId);
+			glDeleteBuffers(3, m_vboIds);
+			m_vaoId = 0;
+		}
+
+		if (m_programId)
+		{
+			glDeleteProgram(m_programId);
+			m_programId = 0;
+		}
+
+        if (m_texture)
+        {
+            glDeleteTextures(1, &m_texture);
+            m_texture = 0;
+        }
+	}
+
+	void Vertex(const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count)
+	{
+        while (count > 0)
+        {
+            int32 particlesToCopy = b2Min(e_maxVertices - m_count, count);
+
+            memcpy(m_vertices + m_count, centers, particlesToCopy * sizeof(*m_vertices));
+            centers += particlesToCopy;
+
+            if (colors)
+            {
+                memcpy(m_colors + m_count, colors, particlesToCopy * sizeof(*m_colors));
+                colors += particlesToCopy;
+            }
+            else
+                memset(m_colors + m_count, 255, particlesToCopy * sizeof(*m_colors));
+
+            float32* outSize = m_sizes + m_count;
+            for (int i = 0; i < particlesToCopy; ++i, outSize++)
+                *outSize = radius;
+
+            count   -= particlesToCopy;
+            m_count += particlesToCopy;
+
+            if (m_count == e_maxVertices)
+                Flush();
+        }
+	}
+
+    void Flush()
+	{
+        if (m_count == 0)
+            return;
+
+		glUseProgram(m_programId);
+
+		float32 proj[16] = { 0.0f };
+		g_camera.BuildProjectionMatrix(proj, 0.0f);
+
+		glUniformMatrix4fv(m_projectionUniform, 1, GL_FALSE, proj);
+
+        const float particle_size_multiplier = 2.0f * 3 * 5.0f;  // because of falloff
+        glUniform1f(m_particleScaleUniform, particle_size_multiplier * (1.0f / g_camera.m_zoom));
+
+		glBindVertexArray(m_vaoId);
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Vec2), m_vertices);
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2ParticleColor), m_colors);
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[2]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(float32), m_sizes);
+
+        //glEnable(GL_TEXTURE_RECTANGLE);
+        glUniform1i(m_textureUniform, 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_texture);
+
+        glDepthMask(GL_FALSE);
+		glEnable(GL_PROGRAM_POINT_SIZE);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glDrawArrays(GL_POINTS, 0, m_count);
+        glDisable(GL_PROGRAM_POINT_SIZE);
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
+        //glDisable(GL_TEXTURE_2D);
+		sCheckGLError();
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+		m_count = 0;
+	}
+
+    enum { e_maxVertices = 2 * 1024 };
+	b2Vec2 m_vertices[e_maxVertices];
+	b2ParticleColor m_colors[e_maxVertices];
+    float32 m_sizes[e_maxVertices];
+
+	int32 m_count;
+
+	GLuint m_vaoId;
+	GLuint m_vboIds[3];
+	GLuint m_programId;
+    GLuint m_texture;
+	GLint m_projectionUniform;
+    GLint m_particleScaleUniform;
+    GLint m_textureUniform;
+	GLint m_vertexAttribute;
+	GLint m_colorAttribute;
+	GLint m_sizeAttribute;
+};
+
+//
 DebugDraw::DebugDraw()
 {
 	m_points = NULL;
     m_lines = NULL;
     m_triangles = NULL;
+    m_particles = NULL;
 }
 
 //
@@ -609,6 +828,7 @@ DebugDraw::~DebugDraw()
 	b2Assert(m_points == NULL);
 	b2Assert(m_lines == NULL);
 	b2Assert(m_triangles == NULL);
+    b2Assert(m_particles == NULL);
 }
 
 //
@@ -620,6 +840,8 @@ void DebugDraw::Create()
 	m_lines->Create();
 	m_triangles = new GLRenderTriangles;
 	m_triangles->Create();
+    m_particles = new GLRenderParticles;
+    m_particles->Create();
 }
 
 //
@@ -636,6 +858,10 @@ void DebugDraw::Destroy()
 	m_triangles->Destroy();
 	delete m_triangles;
 	m_triangles = NULL;
+
+    m_particles->Destroy();
+    delete m_particles;
+    m_particles = NULL;
 }
 
 //
@@ -742,6 +968,12 @@ void DebugDraw::DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Ve
 }
 
 //
+void DebugDraw::DrawParticles(const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count)
+{
+    m_particles->Vertex(centers, radius, colors, count);
+}
+
+//
 void DebugDraw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color)
 {
 	m_lines->Vertex(p1, color);
@@ -804,7 +1036,7 @@ void DebugDraw::DrawAABB(b2AABB* aabb, const b2Color& c)
     b2Vec2 p2 = b2Vec2(aabb->upperBound.x, aabb->lowerBound.y);
     b2Vec2 p3 = aabb->upperBound;
     b2Vec2 p4 = b2Vec2(aabb->lowerBound.x, aabb->upperBound.y);
-    
+
     m_lines->Vertex(p1, c);
     m_lines->Vertex(p2, c);
 
@@ -824,4 +1056,5 @@ void DebugDraw::Flush()
     m_triangles->Flush();
     m_lines->Flush();
     m_points->Flush();
+    m_particles->Flush();
 }

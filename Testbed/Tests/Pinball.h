@@ -128,7 +128,7 @@ public:
 
 		Test::Step(settings);
 
-		g_debugDraw.DrawString(5, m_textLine, "Press 'a' to control the flippers");
+		m_debugDraw.DrawString(5, m_textLine, "Press 'a' to control the flippers");
 		m_textLine += DRAW_STRING_NEW_LINE;
 
 	}
